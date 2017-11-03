@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="/css/chat_style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script>
+        $(document).ready(function(){
+            var chatName = window.prompt("Enter a handle for chat.");
+            var socket = io.connect();
+            socket.emit('new_user_info', chatName);
+
+            socket.on('chat_history', function(data){
+                for(let i = 0; i < data.length; i++){
+                    $('#chatBox').append($('<p>').html(`${data[i].name}: ${data[i].message}`));
+                }
+            });
+
+            $('#sendChat').submit(function(e){
+                e.preventDefault();
+                var chatData = {
+                    name: chatName,
+                    message: $('#chatContent').val()
+                }
+                socket.emit('chat_message', chatData);
+                this.reset();
+            });
+            socket.on('new_message', function(data){
+                console.log("getting message", data);
+                $('#chatBox').append($('<p>').html(`${data.name}: ${data.message}`));
+            });
+        })
+    </script>    
+    <title>Group Chat</title>
+</head>
+<body>
+    <h1>Conversation Board.</h1>
+    <div id='chatBox'>
+
+    </div>
+    <div id="chatInput">
+        <form id="sendChat" action="" method="post">
+            <p><input type="text" id="chatContent">
+            <input type="submit" value="Send"></p>
+        </form>
+    </div>
+</body>
+</html>
